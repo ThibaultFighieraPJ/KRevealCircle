@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">RevealActivity</string>
+    <string name="activity_revealed">RevealedActivity</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
