@@ -44,31 +44,29 @@ class RevealCircleAnimatorHelper {
     private var mSourceY: Float = -1f
 
     constructor(activity: Activity) {
-        if (extractBundleValues(activity.intent.extras)) {
-            activity.overridePendingTransition(0, 0)
-            activity.intent.removeExtra(EXTRAS)
+        activity.takeIf {
+            extractBundleValues(activity.intent.extras)
+        }?.apply {
+            overridePendingTransition(0, 0)
+            intent.removeExtra(EXTRAS)
         }
     }
 
     constructor(fragment: Fragment, container: ViewGroup? = null) {
         if (extractBundleValues(fragment.arguments)) {
             fragment.arguments.remove(EXTRAS)
-            if (container != null) {
+            container?.let {
                 if (container.x < mSourceX) mSourceX -= container.x else mSourceX = 0f
                 if (container.y < mSourceY) mSourceY -= container.y else mSourceY = 0f
             }
         }
     }
 
-    private fun extractBundleValues(extras: Bundle?): Boolean {
-        val bundle = extras?.getBundle(EXTRAS)
-        if (bundle != null) {
-            mSourceX = bundle.getFloat(SOURCE_X)
-            mSourceY = bundle.getFloat(SOURCE_Y)
-            return true
-        }
-        return false
-    }
+    private fun extractBundleValues(extras: Bundle?) = extras?.getBundle(EXTRAS)?.run {
+        mSourceX = getFloat(SOURCE_X)
+        mSourceY = getFloat(SOURCE_Y)
+        true
+    } ?: false
 
     /**
      * Start circle animation
@@ -87,51 +85,49 @@ class RevealCircleAnimatorHelper {
     }
 
     private fun startCircularAnimation(rootLayout: View?, @ColorInt fromColor: Int?, @ColorInt targetColor: Int?) {
-        if (rootLayout == null) {
-            return
+        rootLayout?.let {
+            val circularReveal = getCircularAnimator(it, mSourceX.toInt(), mSourceY.toInt(), CIRCULAR_SPEED)
+            val animator = AnimatorSet()
+            if (fromColor != null && targetColor != null) {
+                val fadeAnimator = getColorCrossFadeAnimator(it, fromColor, targetColor, CIRCULAR_SPEED)
+                animator.play(circularReveal).before(fadeAnimator)
+            } else {
+                animator.play(circularReveal)
+            }
+            animator.start()
         }
-        val circularReveal = getCircularAnimator(rootLayout, mSourceX.toInt(), mSourceY.toInt(), CIRCULAR_SPEED)
-        val animator = AnimatorSet()
-        if (fromColor != null && targetColor != null) {
-            val fadeAnimator = getColorCrossFadeAnimator(rootLayout, fromColor, targetColor, CIRCULAR_SPEED)
-            animator.play(circularReveal).before(fadeAnimator)
-        }
-        else
-        {
-            animator.play(circularReveal)
-        }
-        animator.start()
     }
 
     private fun getCircularAnimator(targetView: View, sourceX: Int, sourceY: Int, speed: Long): Animator {
         val finalRadius = Math.hypot(targetView.width.toDouble(), targetView.height.toDouble()).toFloat()
-        val circularReveal = ViewAnimationUtils.createCircularReveal(targetView, sourceX, sourceY, 0f, finalRadius)
-        circularReveal.interpolator = AccelerateDecelerateInterpolator()
-        circularReveal.duration = speed
-        return circularReveal
+        return ViewAnimationUtils.createCircularReveal(targetView, sourceX, sourceY, 0f, finalRadius).apply {
+            interpolator = AccelerateDecelerateInterpolator()
+            duration = speed
+        }
     }
 
     private fun getColorCrossFadeAnimator(targetView: View, @ColorInt fromColor: Int, @ColorInt targetColor: Int, speed: Long): ValueAnimator {
-        val colorAnimation = ValueAnimator.ofArgb(fromColor, targetColor)
-        colorAnimation.interpolator = AccelerateDecelerateInterpolator()
-        colorAnimation.duration = speed
-        // Set new color to background smoothly
-        colorAnimation.addUpdateListener { animation ->
-            targetView.setBackgroundColor(animation.animatedValue as Int)
-        }
-        // if canceled or ended set final color
-        colorAnimation.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                targetView.setBackgroundColor(targetColor)
-            }
-
-            override fun onAnimationCancel(animation: Animator) {
-                targetView.setBackgroundColor(targetColor)
-            }
-        })
         targetView.setBackgroundColor(fromColor)
-        return colorAnimation
+        return ValueAnimator.ofArgb(fromColor, targetColor).apply {
+            interpolator = AccelerateDecelerateInterpolator()
+            duration = speed
+            // Set new color to background smoothly
+            addUpdateListener { animation ->
+                targetView.setBackgroundColor(animation.animatedValue as Int)
+            }
+            // if canceled or ended set final color
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    targetView.setBackgroundColor(targetColor)
+                }
+
+                override fun onAnimationCancel(animation: Animator) {
+                    targetView.setBackgroundColor(targetColor)
+                }
+            })
+        }
     }
+
 
     companion object {
         private val SOURCE_X = "source_x"
@@ -143,10 +139,8 @@ class RevealCircleAnimatorHelper {
          * @param intent    The source intent
          * @param sourceView  The source view triggering new intent display
          */
-        fun addBundleValues(intent: Intent, sourceView: View?) {
-            if (sourceView != null) {
-                intent.putExtra(EXTRAS, createBundle(sourceView))
-            }
+        fun addBundleValues(intent: Intent, sourceView: View?) = sourceView?.let {
+            intent.putExtra(EXTRAS, createBundle(it))
         }
 
         /**
@@ -155,17 +149,14 @@ class RevealCircleAnimatorHelper {
          * @param arguments    The main bundle containing all others
          * @param sourceView  The source view triggering new intent display
          */
-        fun addBundleValues(arguments: Bundle, sourceView: View?) {
-            if (sourceView != null) {
-                return arguments.putBundle(EXTRAS, createBundle(sourceView))
-            }
-        }
+        fun addBundleValues(arguments: Bundle, sourceView: View?) =
+                sourceView?.let {
+                    arguments.putBundle(EXTRAS, createBundle(it))
+                }
 
-        private fun createBundle(sourceView: View): Bundle {
-            val bundle = Bundle()
-            bundle.putFloat(SOURCE_X, sourceView.x + sourceView.width / 2)
-            bundle.putFloat(SOURCE_Y, sourceView.y + sourceView.height / 2)
-            return bundle
+        private fun createBundle(sourceView: View) = Bundle().apply {
+            putFloat(SOURCE_X, sourceView.x + sourceView.width / 2)
+            putFloat(SOURCE_Y, sourceView.y + sourceView.height / 2)
         }
 
         /**
