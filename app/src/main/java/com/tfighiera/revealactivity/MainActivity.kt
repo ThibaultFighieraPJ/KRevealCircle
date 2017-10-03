@@ -39,17 +39,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setDragDrop(fab: FloatingActionButton) {
-        fab.apply {
-            setOnLongClickListener { view ->
-                ViewCompat.startDragAndDrop(view, ClipData.newPlainText("", ""), View.DragShadowBuilder(view), null, 0)
+        fab.setOnLongClickListener { view ->
+            ViewCompat.startDragAndDrop(view, ClipData.newPlainText("", ""), View.DragShadowBuilder(view), null, 0)
+        }
+
+        fab.setOnDragListener { view, dragEvent ->
+            when (dragEvent.action) {
+                DragEvent.ACTION_DRAG_ENTERED, DragEvent.ACTION_DRAG_STARTED -> view.visibility = View.INVISIBLE
+                DragEvent.ACTION_DRAG_ENDED -> view.visibility = View.VISIBLE
             }
-            setOnDragListener { view, dragEvent ->
-                when (dragEvent.action) {
-                    DragEvent.ACTION_DRAG_ENTERED, DragEvent.ACTION_DRAG_STARTED -> view.visibility = View.INVISIBLE
-                    DragEvent.ACTION_DRAG_ENDED -> view.visibility = View.VISIBLE
-                }
-                true
-            }
+            true
         }
         main_activity.setOnDragListener { _, event ->
             if (event.action == DragEvent.ACTION_DROP) {
@@ -61,10 +60,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun setNewFabPosition(x: Int, y: Int) {
         val params = fab.layoutParams as CoordinatorLayout.LayoutParams
-        fab.layoutParams = params.apply {
-            gravity = Gravity.NO_GRAVITY
-            leftMargin = x - fab.width / 2
-            topMargin = y - fab.height / 2
-        }
+        params.gravity = Gravity.NO_GRAVITY
+        params.leftMargin = x - fab.width / 2
+        params.topMargin = y - fab.height / 2
+        fab.layoutParams = params
     }
 }
