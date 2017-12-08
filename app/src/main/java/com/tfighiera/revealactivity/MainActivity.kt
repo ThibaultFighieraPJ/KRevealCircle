@@ -16,15 +16,9 @@
  */
 package com.tfighiera.revealactivity
 
-import android.content.ClipData
 import android.os.Bundle
-import android.support.design.widget.CoordinatorLayout
-import android.support.design.widget.FloatingActionButton
-import android.support.v4.view.ViewCompat
 import android.support.v7.app.AppCompatActivity
-import android.view.DragEvent
-import android.view.Gravity
-import android.view.View
+import com.tfighiera.revealactivity.extension.widget.setDragDrop
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -35,34 +29,6 @@ class MainActivity : AppCompatActivity() {
         fab.setOnClickListener { view ->
             startActivity(RevealActivity.newIntent(this, sourceView = view))
         }
-        setDragDrop(fab)
-    }
-
-    private fun setDragDrop(fab: FloatingActionButton) {
-        fab.setOnLongClickListener { view ->
-            ViewCompat.startDragAndDrop(view, ClipData.newPlainText("", ""), View.DragShadowBuilder(view), null, 0)
-        }
-
-        fab.setOnDragListener { view, dragEvent ->
-            when (dragEvent.action) {
-                DragEvent.ACTION_DRAG_ENTERED, DragEvent.ACTION_DRAG_STARTED -> view.visibility = View.INVISIBLE
-                DragEvent.ACTION_DRAG_ENDED -> view.visibility = View.VISIBLE
-            }
-            true
-        }
-        main_activity.setOnDragListener { _, event ->
-            if (event.action == DragEvent.ACTION_DROP) {
-                setNewFabPosition(event.x.toInt(), event.y.toInt())
-            }
-            true
-        }
-    }
-
-    private fun setNewFabPosition(x: Int, y: Int) {
-        val params = fab.layoutParams as CoordinatorLayout.LayoutParams
-        params.gravity = Gravity.NO_GRAVITY
-        params.leftMargin = x - fab.width / 2
-        params.topMargin = y - fab.height / 2
-        fab.layoutParams = params
+        fab.setDragDrop(main_activity)
     }
 }

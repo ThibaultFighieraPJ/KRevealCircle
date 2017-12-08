@@ -33,11 +33,9 @@ class RevealFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(sourceView: View? = null): RevealFragment {
-            val fragment = RevealFragment()
-            fragment.arguments = Bundle()
-            RevealCircleAnimatorHelper.addBundleValues(fragment.arguments, sourceView)
-            return fragment
+        fun newInstance(sourceView: View? = null) = RevealFragment().apply {
+            arguments = Bundle()
+            RevealCircleAnimatorHelper.addBundleValues(arguments, sourceView)
         }
     }
 }

@@ -53,7 +53,7 @@ class RevealCircleAnimatorHelper {
     constructor(fragment: Fragment, container: ViewGroup? = null) {
         if (extractBundleValues(fragment.arguments)) {
             fragment.arguments.remove(EXTRAS)
-            if (container != null) {
+            container?.let {
                 if (container.x < mSourceX) mSourceX -= container.x else mSourceX = 0f
                 if (container.y < mSourceY) mSourceY -= container.y else mSourceY = 0f
             }
@@ -95,9 +95,7 @@ class RevealCircleAnimatorHelper {
         if (fromColor != null && targetColor != null) {
             val fadeAnimator = getColorCrossFadeAnimator(rootLayout, fromColor, targetColor, CIRCULAR_SPEED)
             animator.play(circularReveal).before(fadeAnimator)
-        }
-        else
-        {
+        } else {
             animator.play(circularReveal)
         }
         animator.start()
@@ -105,10 +103,10 @@ class RevealCircleAnimatorHelper {
 
     private fun getCircularAnimator(targetView: View, sourceX: Int, sourceY: Int, speed: Long): Animator {
         val finalRadius = Math.hypot(targetView.width.toDouble(), targetView.height.toDouble()).toFloat()
-        val circularReveal = ViewAnimationUtils.createCircularReveal(targetView, sourceX, sourceY, 0f, finalRadius)
-        circularReveal.interpolator = AccelerateDecelerateInterpolator()
-        circularReveal.duration = speed
-        return circularReveal
+        return ViewAnimationUtils.createCircularReveal(targetView, sourceX, sourceY, 0f, finalRadius).apply {
+            interpolator = AccelerateDecelerateInterpolator()
+            duration = speed
+        }
     }
 
     private fun getColorCrossFadeAnimator(targetView: View, @ColorInt fromColor: Int, @ColorInt targetColor: Int, speed: Long): ValueAnimator {
@@ -134,9 +132,10 @@ class RevealCircleAnimatorHelper {
     }
 
     companion object {
-        private val SOURCE_X = "source_x"
-        private val SOURCE_Y = "source_y"
-        private val EXTRAS = "reveal-circle-extra"
+        private const val SOURCE_X = "source_x"
+        private const val SOURCE_Y = "source_y"
+        private const val EXTRAS = "reveal-circle-extra"
+
         /**
          * Add useful values to activity's Intent which will be extracted when new activity will start
          * @see RevealCircleAnimatorHelper.start
@@ -161,11 +160,9 @@ class RevealCircleAnimatorHelper {
             }
         }
 
-        private fun createBundle(sourceView: View): Bundle {
-            val bundle = Bundle()
-            bundle.putFloat(SOURCE_X, sourceView.x + sourceView.width / 2)
-            bundle.putFloat(SOURCE_Y, sourceView.y + sourceView.height / 2)
-            return bundle
+        private fun createBundle(sourceView: View) = Bundle().apply {
+            putFloat(SOURCE_X, sourceView.x + sourceView.width / 2)
+            putFloat(SOURCE_Y, sourceView.y + sourceView.height / 2)
         }
 
         /**

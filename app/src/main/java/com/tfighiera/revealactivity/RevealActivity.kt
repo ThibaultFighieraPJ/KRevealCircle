@@ -19,11 +19,11 @@ package com.tfighiera.revealactivity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.content.res.ResourcesCompat
 import android.support.v7.app.AppCompatActivity
-import android.util.TypedValue
 import android.view.MenuItem
 import android.view.View
+import com.tfighiera.revealactivity.extension.widget.getColor
+import com.tfighiera.revealactivity.extension.widget.getThemeColor
 import kotlinx.android.synthetic.main.activity_circled.*
 
 class RevealActivity : AppCompatActivity() {
@@ -36,7 +36,7 @@ class RevealActivity : AppCompatActivity() {
 
         RevealCircleAnimatorHelper
                 .create(this)
-                .start(root, getColorAccent(this), ResourcesCompat.getColor(resources, R.color.background_default, theme))
+                .start(root, getThemeColor(R.attr.colorAccent), getColor(R.color.background_default, theme))
         setShowFragmentButton()
     }
 
@@ -49,19 +49,14 @@ class RevealActivity : AppCompatActivity() {
         }
     }
 
-    private fun getColorAccent(context: Context): Int {
-        val value = TypedValue()
-        context.theme.resolveAttribute(R.attr.colorAccent, value, true)
-        return value.data
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            onBackPressed()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
+    override fun onOptionsItemSelected(item: MenuItem) =
+            when (item.itemId) {
+                android.R.id.home -> {
+                    onBackPressed()
+                    true
+                }
+                else -> super.onOptionsItemSelected(item)
+            }
 
     companion object {
         /**
@@ -69,9 +64,9 @@ class RevealActivity : AppCompatActivity() {
          * @param context
          */
         fun newIntent(context: Context, sourceView: View? = null): Intent {
-            val intent = Intent(context, RevealActivity::class.java)
-            RevealCircleAnimatorHelper.addBundleValues(intent, sourceView)
-            return intent
+            return Intent(context, RevealActivity::class.java).also {
+                RevealCircleAnimatorHelper.addBundleValues(it, sourceView)
+            }
         }
     }
 }
