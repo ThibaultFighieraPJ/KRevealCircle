@@ -1,4 +1,4 @@
-# KRevealCircle
+# KRevealCircle Android
 
 Start any [fragment](https://developer.android.com/guide/components/fragments.html), 
 [activity](https://developer.android.com/guide/components/activities/index.html) or [view](https://developer.android.com/reference/android/view/View.html) with a circular reveal effect.
